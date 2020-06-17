@@ -10,23 +10,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     
 """
-import Tkinter as tk
-import ttk
+import tkinter as tk
+import tkinter.ttk
 import sys
 import os
 import subprocess
 import argparse
 import json
-import urllib2
-import httplib
+import urllib.request, urllib.error, urllib.parse
+import http.client
 import shutil
-import ConfigParser
-import tkMessageBox
+import configparser
+import tkinter.messagebox
 import threading
-import Queue
+import queue
 import zipfile
 import time as time_
-import tkFileDialog
+import tkinter.filedialog
 from distutils import dir_util
 import stat
 from Tabs import *
@@ -118,25 +118,25 @@ class WIKLauncher:
         self.debugPrint("Checking for update")
         # go download version file
         try:
-            request = urllib2.urlopen(self.config.get('Update', 'updateurl') +
+            request = urllib.request.urlopen(self.config.get('Update', 'updateurl') +
                                       self.config.get('Update', 'versionfile'))
             self.newVersion = request.read()
 
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             self.debugPrint('Unable to get latest version info - HTTPError = ' +
                             str(e.code))
             self.newVersion = False
 
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             self.debugPrint('Unable to get latest version info - URLError = ' +
                             str(e.reason))
             self.newVersion = False
         
-        except httplib.HTTPException, e:
+        except http.client.HTTPException as e:
             self.debugPrint('Unable to get latest version info - HTTPException')
             self.newVersion = False
 
-        except Exception, e:
+        except Exception as e:
             import traceback
             self.debugPrint('Unable to get latest version info - Exception = ' +
                             traceback.format_exc())
@@ -155,41 +155,41 @@ class WIKLauncher:
             
     def offerUpdate(self):
         self.debugPrint("Ask to update")
-        if tkMessageBox.askyesno("WIK Update Available",
+        if tkinter.messagebox.askyesno("WIK Update Available",
                                  ("There is an update for WIK available would "
                                   "you like to download it?")
                                  ):
             self.updateFailed = False
             # grab zip size for progress bar length
             try:
-                u = urllib2.urlopen(self.config.get('Update', 'updateurl') +
+                u = urllib.request.urlopen(self.config.get('Update', 'updateurl') +
                                     self.config.get('Update',
                                                     'updatefile'
                                                     ).format(self.newVersion))
                 meta = u.info()
                 self.file_size = int(meta.getheaders("Content-Length")[0])
-            except urllib2.HTTPError, e:
+            except urllib.error.HTTPError as e:
                 self.debugPrint('Unable to get download file size - HTTPError = ' +
                                 str(e.code))
                 self.updateFailed = "Unable to get download file size"
             
-            except urllib2.URLError, e:
+            except urllib.error.URLError as e:
                 self.debugPrint('Unable to get download file size- URLError = ' +
                                 str(e.reason))
                 self.updateFailed = "Unable to get download file size"
             
-            except httplib.HTTPException, e:
+            except http.client.HTTPException as e:
                 self.debugPrint('Unable to get download file size- HTTPException')
                 self.updateFailed = "Unable to get download file size"
             
-            except Exception, e:
+            except Exception as e:
                 import traceback
                 self.debugPrint('Unable to get download file size - Exception = ' +
                                 traceback.format_exc())
                 self.updateFailed = "Unable to get download file size"
             
             if self.updateFailed:
-                tkMessageBox.showerror("Update Failed", self.updateFailed)
+                tkinter.messagebox.showerror("Update Failed", self.updateFailed)
             else:
                 position = self.master.geometry().split("+")
                 
@@ -207,13 +207,13 @@ class WIKLauncher:
                          ).pack()
                 
                 self.progressBar = tk.IntVar()
-                ttk.Progressbar(self.progressWindow, orient="horizontal",
+                tkinter.ttk.Progressbar(self.progressWindow, orient="horizontal",
                                 length=200, mode="determinate",
                                 maximum=self.file_size,
                                 variable=self.progressBar).pack()
                 
                 self.downloadThread = threading.Thread(target=self.downloadUpdate)
-                self.progressQueue = Queue.Queue()
+                self.progressQueue = queue.Queue()
                 self.downloadThread.start()
                 self.progressUpdate()
 
@@ -224,7 +224,7 @@ class WIKLauncher:
         self.progressQueue.task_done()
         if self.updateFailed:
             self.progressWindow.destroy()
-            tkMessageBox.showerror("Update Failed", self.updateFailed)
+            tkinter.messagebox.showerror("Update Failed", self.updateFailed)
         elif value < self.file_size:
             self.master.after(1, self.progressUpdate)
         else:
@@ -251,7 +251,7 @@ class WIKLauncher:
         self.debugPrint(localFile)
 
         try:
-            u = urllib2.urlopen(url)
+            u = urllib.request.urlopen(url)
             f = open(localFile, 'wb')
             meta = u.info()
             file_size = int(meta.getheaders("Content-Length")[0])
@@ -274,21 +274,21 @@ class WIKLauncher:
                 self.progressQueue.put(file_size_dl)
 
             f.close()
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             self.debugPrint('Unable to get download file - HTTPError = ' +
                             str(e.code))
             self.updateFailed = "Unable to get download file"
         
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             self.debugPrint('Unable to get download file - URLError = ' +
                             str(e.reason))
             self.updateFailed = "Unable to get download file"
         
-        except httplib.HTTPException, e:
+        except http.client.HTTPException as e:
             self.debugPrint('Unable to get download file - HTTPException')
             self.updateFailed = "Unable to get download file"
         
-        except Exception, e:
+        except Exception as e:
             import traceback
             self.debugPrint('Unable to get download file - Exception = ' +
                             traceback.format_exc())
@@ -298,7 +298,7 @@ class WIKLauncher:
         self.debugPrint("Location Zip for Update")
         self.updateFailed = False
         
-        filename = tkFileDialog.askopenfilename(title="Please select the WIK Update zip",
+        filename = tkinter.filedialog.askopenfilename(title="Please select the WIK Update zip",
                                                 filetypes = [("Zip Files",
                                                               "*.zip")])
         self.debugPrint("Given file name of {}".format(filename))
@@ -337,13 +337,13 @@ class WIKLauncher:
         tk.Label(self.progressWindow, text="Extracting Zip Progress").pack()
 
         self.progressBar = tk.IntVar()
-        ttk.Progressbar(self.progressWindow, orient="horizontal",
+        tkinter.ttk.Progressbar(self.progressWindow, orient="horizontal",
                      length=200, mode="determinate",
                      maximum=self.zipFileCount,
                      variable=self.progressBar).pack()
                      
         self.zipThread = threading.Thread(target=self.zipExtract)
-        self.progressQueue = Queue.Queue()
+        self.progressQueue = queue.Queue()
         self.zipThread.start()
         self.zipProgressUpdate()
 
@@ -355,7 +355,7 @@ class WIKLauncher:
         self.progressQueue.task_done()
         if self.updateFailed:
             self.progressWindow.destroy()
-            tkMessageBox.showerror("Update Failed", self.updateFailed)
+            tkinter.messagebox.showerror("Update Failed", self.updateFailed)
         elif value < self.zipFileCount:
             self.master.after(1, self.zipProgressUpdate)
         else:
@@ -382,14 +382,14 @@ class WIKLauncher:
     def updateArduino(self):
         self.debugPrint("Update Local Arduino Sketchbook Files")
         # copy the LLAPSerial library and WIKSketch example to the users sketchbook
-        if tkMessageBox.askyesno("Update Arduino IDE Files",
+        if tkinter.messagebox.askyesno("Update Arduino IDE Files",
                                  ("This will update the copy of the LLAPSerial "
                                   "library and WIKSketch code in your Arduino "
                                   "IDE Sketchbook folder,\r"
                                   "Do you whis to proceed?")
                                  ):
             # present dir selection
-            path = tkFileDialog.askdirectory(title=("Please select your Arduino"
+            path = tkinter.filedialog.askdirectory(title=("Please select your Arduino"
                                                     " Sketchbook folder"),
                              initialdir=self.config.get('Update',
                                                         'sketchbook_folder'))
@@ -407,7 +407,7 @@ class WIKLauncher:
                                            path)
                 
                 self.debugPrint("Files Copied :{}".format(filesCopied))
-                tkMessageBox.showinfo("WIK Sketch Files",
+                tkinter.messagebox.showinfo("WIK Sketch Files",
                                   ("Update done. \rThe latest WIKSketch "
                                    "can now be found in the Arduino IDE "
                                    "under the following \r"
@@ -579,7 +579,7 @@ class WIKLauncher:
                                             ]['Description'])
 
     def launch(self):
-        items = map(int, self.appSelect.curselection())
+        items = list(map(int, self.appSelect.curselection()))
         if items:
             app = ["./{}".format(
                  self.appList[int(self.appSelect.curselection()[0])]['FileName']
@@ -595,7 +595,7 @@ class WIKLauncher:
             self.debugPrint("Nothing Selected to Launch")
 
     def launchAdvance(self):
-        items = map(int, self.advanceSelect.curselection())
+        items = list(map(int, self.advanceSelect.curselection()))
         if items:
             if items[0] == 0:
                 self.manualZipUpdate()
@@ -608,7 +608,7 @@ class WIKLauncher:
     def readConfig(self):
         self.debugPrint("Reading Config")
 
-        self.config = ConfigParser.SafeConfigParser()
+        self.config = configparser.SafeConfigParser()
         
         # load defaults
         try:

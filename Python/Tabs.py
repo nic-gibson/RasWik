@@ -28,7 +28,7 @@
     THE SOFTWARE.
     
 """
-import Tkinter as tk
+import tkinter as tk
 
 # a base tab class
 class Tab(tk.Frame):
@@ -47,7 +47,7 @@ class TabBar(tk.Frame):
     
     def show(self):
         self.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
-        self.switch_tab(self.init_name or self.tabs.keys()[-1])# switch the tab to the first tab
+        self.switch_tab(self.init_name or list(self.tabs.keys())[-1])# switch the tab to the first tab
     
     def add(self, tab):
         tab.pack_forget()									# hide the tab on init
@@ -64,7 +64,7 @@ class TabBar(tk.Frame):
             self.current_tab = None
             self.tabs[tabname].pack_forget()
             del self.tabs[tabname]
-            self.switch_tab(self.tabs.keys()[0])
+            self.switch_tab(list(self.tabs.keys())[0])
         
         else: del self.tabs[tabname]
         

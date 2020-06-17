@@ -10,8 +10,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     
 """
-from Tkinter import *
-import ttk
+from tkinter import *
+import tkinter.ttk
 import sys
 import os
 import subprocess
@@ -19,13 +19,13 @@ import argparse
 import math
 import serial
 import json
-import urllib2
-import httplib
+import urllib.request, urllib.error, urllib.parse
+import http.client
 import shutil
-import ConfigParser
-import tkMessageBox
+import configparser
+import tkinter.messagebox
 import threading
-import Queue
+import queue
 import zipfile
 import time as time_
 #import ImageTk
@@ -171,7 +171,7 @@ class GuiPart:
     def readConfig(self):
         self.debugPrint("Reading Config")
 
-        self.config = ConfigParser.SafeConfigParser()
+        self.config = configparser.SafeConfigParser()
 
         # load defaults
         try:
@@ -349,7 +349,7 @@ class GuiPart:
         # history
         Button(lframe, text='Send Previous',
                command=self.sendOldCommand).pack(side=RIGHT)
-        self.historyBox = ttk.Combobox(lframe, width=14, justify=CENTER,
+        self.historyBox = tkinter.ttk.Combobox(lframe, width=14, justify=CENTER,
                                        state='readonly')
         self.historyBox.pack(side=RIGHT)
         self.historyBox['values'] = self.historyList
@@ -570,7 +570,7 @@ class GuiPart:
                 self.text.see(END)
                 self.text.config(state=DISABLED)
                 self.queue.task_done()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
     def tmpCalc(self, ADCvalue):
@@ -611,7 +611,7 @@ class ThreadedClient:
         self.t_stop = threading.Event()
 
         # Create the queue
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
         self.s = serial.Serial()
         self.s.baudrate = baud
@@ -639,7 +639,7 @@ class ThreadedClient:
             try:
                 self.s.open()
                 self.gui.connectText.set('Disconnect')
-            except serial.SerialException, e:
+            except serial.SerialException as e:
                 self.gui.appendText("Could not open port %r: %s\n" % (port, e))
         else:
             self.disconnectFlag.set()
